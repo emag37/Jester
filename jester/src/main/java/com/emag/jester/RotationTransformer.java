@@ -38,6 +38,7 @@ public class RotationTransformer {
         if (pointers.size() != 2) {
             return 0.f;
         }
+
         final float prevVectX = pointers.get(1).previousPoint.x - pointers.get(0).previousPoint.x;
         final float prevVectY = pointers.get(1).previousPoint.y - pointers.get(0).previousPoint.y;
         final float currVectX = pointers.get(1).currentPoint.x - pointers.get(0).currentPoint.x;
@@ -66,6 +67,15 @@ public class RotationTransformer {
         return new RotationEventData((float) Math.toDegrees(rotationRads), pivot);
     }
 
+    public static PointF getAnchorPoint(List<Pointer> pointers) {
+        final double t1x = pointers.get(0).previousPoint.x;
+        final double t1y = pointers.get(0).previousPoint.y;
+        final double t2x = pointers.get(1).previousPoint.x;
+        final double t2y = pointers.get(1).previousPoint.y;
+
+        return new PointF((float)((t1x + t2x) / 2), (float)((t1y + t2y) /2));
+    }
+
     public static void transform(List<Pointer> pointers, PointF centroid, Transformation outTransformation) {
         outTransformation.rotationDegrees = 0;
 
@@ -74,15 +84,17 @@ public class RotationTransformer {
         }
 
         final double rotationRads = getRotationRads(pointers);
-        final PointF pivot = locatePivot(pointers.get(0), pointers.get(1));
-        if (pivot == null) {
-            return;
-        }
+//        final PointF pivot = locatePivot(pointers.get(0), pointers.get(1));
+//        if (pivot == null) {
+//            return;
+//        }
 
-        double newX = pivot.x + (centroid.x - pivot.x) * Math.cos(rotationRads) - (centroid.y - pivot.y) * Math.sin(rotationRads);
-        double newY = pivot.y + (centroid.x - pivot.x) * Math.sin(rotationRads) + (centroid.y - pivot.y) * Math.cos(rotationRads);
+//        final PointF pivot = getAnchorPoint(pointers);
 
-        outTransformation.addTranslation((float) newX - centroid.x, (float) newY - centroid.y);
+//        double newX = pivot.x + (centroid.x - pivot.x) * Math.cos(rotationRads) - (centroid.y - pivot.y) * Math.sin(rotationRads);
+//        double newY = pivot.y + (centroid.x - pivot.x) * Math.sin(rotationRads) + (centroid.y - pivot.y) * Math.cos(rotationRads);
+
+//        outTransformation.addTranslation((float) newX - centroid.x, (float) newY - centroid.y);
         outTransformation.rotationDegrees = (float) Math.toDegrees(rotationRads);
     }
 }

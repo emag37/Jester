@@ -14,17 +14,13 @@ public class ScaleTransformer {
         return currPointerDist / prevPointerDist;
     }
 
-    private static double getTranslation(double p, double p_prime, double scale) {
-        return (p_prime - scale * p) / (1 - scale);
-    }
-
     public static PointF getAnchorPoint(List<Pointer> pointers, double scale) {
-        final double t1x = getTranslation(pointers.get(0).previousPoint.x,pointers.get(0).currentPoint.x, scale);
-        final double t1y = getTranslation(pointers.get(0).previousPoint.y,pointers.get(0).currentPoint.y, scale);
-        //double t2x = getTranslation(pointers.get(1).previousPoint.x,pointers.get(1).currentPoint.x, scale);
-        //double t2y = getTranslation(pointers.get(1).previousPoint.y,pointers.get(1).currentPoint.y, scale);
+        final double t1x = pointers.get(0).previousPoint.x;
+        final double t1y = pointers.get(0).previousPoint.y;
+        final double t2x = pointers.get(1).previousPoint.x;
+        final double t2y = pointers.get(1).previousPoint.y;
 
-        return new PointF((float)t1x, (float)t1y);
+        return new PointF((float)((t1x + t2x) / 2), (float)((t1y + t2y) /2));
     }
 
     public static void transform(List<Pointer> pointers, PointF centroid, Transformation outTransformation) {
@@ -34,9 +30,6 @@ public class ScaleTransformer {
         }
 
         double scale = getScale(pointers);
-        if (scale >  0.995 && scale < 1.005) {
-            return;
-        }
         outTransformation.scale = (float) scale;
 
         final PointF anchor = getAnchorPoint(pointers, scale);

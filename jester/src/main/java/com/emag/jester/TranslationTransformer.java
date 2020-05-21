@@ -52,14 +52,10 @@ public class TranslationTransformer {
 
     public static void transform(List<Pointer> pointers, Transformation outTransformation) {
         final float[] centroidT = getCentroidTranslation(pointers);
-        final float[] smallestT = getMinTranslation(pointers);
+//        final float[] smallestT = getMinTranslation(pointers);
 
-        if (getDistance(centroidT) < getDistance(smallestT)) {
+        if (getDistance(centroidT) < 1000) {
             outTransformation.addTranslation(centroidT);
-        } else {
-           outTransformation.addTranslation(smallestT);
         }
-
-
     }
 }
