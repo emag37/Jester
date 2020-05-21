@@ -14,23 +14,6 @@ public class TranslationTransformer {
         return (float) Math.hypot(xy[X], xy[Y]);
     }
 
-    private static @Size(2) float[] getMinTranslation(List<Pointer> pointers) {
-        float smallestTranslation = Float.MAX_VALUE;
-        float[] smallestDelta = {0,0};
-
-        for(Pointer p : pointers) {
-            final double dx = p.currentPoint.x - p.previousPoint.x;
-            final double dy = p.currentPoint.y - p.previousPoint.y;
-            final float dist = (float) Math.hypot(dx,dy);
-            if (dist < smallestTranslation) {
-                smallestTranslation = dist;
-                smallestDelta[X] = (float) dx;
-                smallestDelta[Y] = (float) dy;
-            }
-        }
-        return smallestDelta;
-    }
-
     private static @Size(2) float[] getCentroidTranslation(List<Pointer> pointers) {
         float[] oldCentroid = {0,0};
         float[] newCentroid = {0,0};
@@ -52,7 +35,6 @@ public class TranslationTransformer {
 
     public static void transform(List<Pointer> pointers, Transformation outTransformation) {
         final float[] centroidT = getCentroidTranslation(pointers);
-//        final float[] smallestT = getMinTranslation(pointers);
 
         if (getDistance(centroidT) < 1000) {
             outTransformation.addTranslation(centroidT);

@@ -1,10 +1,7 @@
 package com.emag.jester;
 
 import android.graphics.Matrix;
-import android.graphics.Point;
 import android.graphics.PointF;
-
-import androidx.annotation.Size;
 
 import java.util.List;
 
@@ -30,9 +27,9 @@ public class GestureTransformer {
 
    public static Transformation transformFromGesture(List<Pointer> pointers, PointF centroid) {
       Transformation retT = new Transformation();
-      ScaleTransformer.transform(pointers, centroid, retT);     // % (relative "around" prev midpoint)
-      RotationTransformer.transform(pointers, centroid, retT);  // angle (relative "around" prev midpoint)
-      TranslationTransformer.transform(pointers, retT);         // vec, how much midpoints moved?
+      ScaleTransformer.transform(pointers, retT);        // % (relative "around" prev midpoint)
+      RotationTransformer.transform(pointers, retT);     // angle (relative "around" prev midpoint)
+      TranslationTransformer.transform(pointers, retT);  // vec, how much midpoints moved?
 
       PointF anchorPoint = getInitialAnchorPoint(pointers);
 
