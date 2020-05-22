@@ -4,18 +4,15 @@ import android.graphics.PointF;
 
 import androidx.annotation.Nullable;
 
-public class Pointer {
+public class Pointer implements Cloneable {
     public final int id;
     public PointF currentPoint;
-    public PointF previousPoint;
 
     public void update(float newX, float newY) {
         if (currentPoint != null) {
-            previousPoint.set(currentPoint);
             currentPoint.set(newX, newY);
         } else {
             currentPoint = new PointF(newX,newY);
-            previousPoint = new PointF(currentPoint.x, currentPoint.y);
         }
     }
 
@@ -26,5 +23,10 @@ public class Pointer {
     @Override
     public boolean equals(@Nullable Object obj) {
         return obj instanceof Pointer && ((Pointer)obj).id == id;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 }

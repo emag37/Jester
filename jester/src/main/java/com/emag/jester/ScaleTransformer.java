@@ -1,48 +1,37 @@
 package com.emag.jester;
 
-import android.graphics.PointF;
-
 import java.util.List;
 
 public class ScaleTransformer {
     private static String TAG = ScaleTransformer.class.getSimpleName();
 
-    public static double getScale(List<Pointer> pointers) {
-        final double currPointerDist = Math.hypot(pointers.get(0).currentPoint.x - pointers.get(1).currentPoint.x, pointers.get(0).currentPoint.y - pointers.get(1).currentPoint.y);
-        final double prevPointerDist = Math.hypot(pointers.get(0).previousPoint.x - pointers.get(1).previousPoint.x, pointers.get(0).previousPoint.y - pointers.get(1).previousPoint.y);
+    private final float MAX_INCREMENTAL_SCALE = 2.0f;
+    private final double initPointerDist;
 
-        return currPointerDist / prevPointerDist;
+    private static double getPointerDist(List<Pointer> pointers) {
+        return Math.hypot(pointers.get(0).currentPoint.x - pointers.get(1).currentPoint.x, pointers.get(0).currentPoint.y - pointers.get(1).currentPoint.y);
     }
 
-    private static double getTranslation(double p, double p_prime, double scale) {
-        return (p_prime - scale * p) / (1 - scale);
+    public double getScale(List<Pointer> pointers) {
+        return getPointerDist(pointers) / initPointerDist;
     }
 
-    public static PointF getAnchorPoint(List<Pointer> pointers, double scale) {
-        final double t1x = getTranslation(pointers.get(0).previousPoint.x,pointers.get(0).currentPoint.x, scale);
-        final double t1y = getTranslation(pointers.get(0).previousPoint.y,pointers.get(0).currentPoint.y, scale);
-        //double t2x = getTranslation(pointers.get(1).previousPoint.x,pointers.get(1).currentPoint.x, scale);
-        //double t2y = getTranslation(pointers.get(1).previousPoint.y,pointers.get(1).currentPoint.y, scale);
-
-        return new PointF((float)t1x, (float)t1y);
-    }
-
-    public static void transform(List<Pointer> pointers, PointF centroid, Transformation outTransformation) {
-        outTransformation.scale = 1.f;
+    public void transform(List<Pointer> pointers, Transformation outTransformation) {
         if (pointers.size() != 2) {
-            return;
+            throw new RuntimeException("Cannot get scale transform with nPointers != 2");
         }
 
         double scale = getScale(pointers);
-        if (scale >  0.995 && scale < 1.005) {
-            return;
+        if (Math.abs(scale - outTransformation.scale) < MAX_INCREMENTAL_SCALE) {
+            outTransformation.scale = (float) scale;
         }
-        outTransformation.scale = (float) scale;
+    }
 
-        final PointF anchor = getAnchorPoint(pointers, scale);
+    public ScaleTransformer(List<Pointer> initPointers) {
+        if (initPointers.size() != 2) {
+            throw new RuntimeException("Cannot init ScaleTransformer with nPointers != 2");
+        }
 
-        final double newCentroidX = (centroid.x - anchor.x) * scale + anchor.x;
-        final double newCentroidY = (centroid.y - anchor.y) * scale + anchor.y;
-        outTransformation.addTranslation((float) newCentroidX - centroid.x, (float) newCentroidY - centroid.y);;
+        initPointerDist = getPointerDist(initPointers);
     }
 }
