@@ -54,8 +54,11 @@ public class Gesture {
             throw new RuntimeException("Cannot change the number of pointers within the same gesture!");
         }
         for(Pointer newP : newPointers) {
-            currentPointers.stream().filter(currP -> currP.id == newP.id)
-                    .findFirst().ifPresent(toUpdate -> toUpdate.update(newP.currentPoint.x, newP.currentPoint.y));
+            for (Pointer currentP : currentPointers) {
+                if (currentP.equals(newP)) {
+                    currentP.update(newP.currentPoint.x, newP.currentPoint.y);
+                }
+            }
         }
     }
 

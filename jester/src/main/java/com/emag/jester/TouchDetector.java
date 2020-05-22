@@ -1,8 +1,6 @@
 package com.emag.jester;
 
-import android.util.SizeF;
 import android.view.MotionEvent;
-import android.view.View;
 
 import androidx.annotation.NonNull;
 
@@ -59,12 +57,16 @@ public class TouchDetector {
     }
 
     private @NonNull Pointer getActivePointer(final int pointerId) {
-        Pointer found = activePointers.stream()
-                .filter(p -> p.id == pointerId)
-                .findFirst()
-                .orElse(null);
-        if (found != null) {
-            return found;
+        Pointer foundP = null;
+        for (Pointer activeP : activePointers) {
+            if (activeP.id == pointerId) {
+                foundP = activeP;
+                break;
+            }
+        }
+
+        if (foundP != null) {
+            return foundP;
         }
         Pointer newPt = new Pointer(pointerId);
         activePointers.add(newPt);
