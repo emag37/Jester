@@ -1,51 +1,37 @@
 package com.emag.jester;
 
-import android.graphics.Matrix;
 import android.graphics.PointF;
+import android.util.Log;
 
 import java.util.List;
 
 public class GestureTransformer {
+   private String TAG = this.getClass().getSimpleName();
+   private PointF currentCentroid;
+   private Gesture currentGesture;
+   private Transformation lastTransformation;
 
-   private static final int X = 0;
-   private static final int Y = 1;
-
-
-   private static PointF getInitialAnchorPoint(List<Pointer> pointers) {
-      PointF anchor = new PointF(0, 0);
-
-      for(Pointer p : pointers) {
-         anchor.x += p.previousPoint.x;
-         anchor.y += p.previousPoint.y;
-      }
-
-      anchor.x /= pointers.size();
-      anchor.y /= pointers.size();
-
-      return anchor;
+   public GestureTransformer(List<Pointer> initPointers, PointF initCentroid) {
+      this.currentCentroid = initCentroid;
+      currentGesture = new Gesture(initPointers);
+      lastTransformation = new Transformation();
    }
 
-   public static Transformation transformFromGesture(List<Pointer> pointers, PointF centroid) {
-      Transformation retT = new Transformation();
-      ScaleTransformer.transform(pointers, retT);        // % (relative "around" prev midpoint)
-      RotationTransformer.transform(pointers, retT);     // angle (relative "around" prev midpoint)
-      TranslationTransformer.transform(pointers, retT);  // vec, how much midpoints moved?
+   public void updateGesture(List<Pointer> pointers) {
+     if (currentGesture.nPointers != pointers.size()) {
+        Transformation thisTransformation = currentGesture.getTransformationForPoints(new float[] {currentCentroid.x,currentCentroid.y});
+        currentCentroid = new PointF(currentCentroid.x + thisTransformation.tX, currentCentroid.y + thisTransformation.tY);
+        lastTransformation.add(thisTransformation);
 
-      PointF anchorPoint = getInitialAnchorPoint(pointers);
+        currentGesture = new Gesture(pointers);
+     }
+      currentGesture.updateFromPointers(pointers);
+   }
 
-      Matrix tm = new Matrix();
-      tm.setTranslate(-anchorPoint.x, -anchorPoint.y);
-      tm.postRotate(retT.rotationDegrees);
-      tm.postScale(retT.scale, retT.scale);
-      tm.setTranslate(anchorPoint.x, anchorPoint.y);
-      tm.setTranslate(retT.tX, retT.tY);
+   public Transformation getTransformation() {
+      Transformation retTransformation = currentGesture.getTransformationForPoints(new float[] {currentCentroid.x,currentCentroid.y});
+      retTransformation.add(lastTransformation);
 
-      float[] points = new float[] {centroid.x, centroid.y};
-      tm.mapPoints(points);
-
-      retT.tX = points[0] - centroid.x;
-      retT.tY = points[1] - centroid.y;
-
-      return retT;
+      return retTransformation;
    }
 }

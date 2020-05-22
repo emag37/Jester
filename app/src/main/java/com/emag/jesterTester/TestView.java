@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
@@ -19,9 +20,10 @@ public class TestView extends View {
     Paint pivotPaint;
     Paint pointerPaint;
     Paint rectPaint;
-    float currentRotation;
+    Transformation pendingTransformation = new Transformation();
     PointF p1,p2;
     RectF rect;
+    float currentRotation = 0;
 
     private void initPaint() {
         pivotPaint = new Paint();
@@ -42,7 +44,8 @@ public class TestView extends View {
 
     public void resetRect() {
         rect = new RectF(200f,200f, 600f, 600f);
-        currentRotation = 0.f;
+        pendingTransformation = new Transformation();
+        currentRotation = 0;
         invalidate();
     }
     public TestView(Context context) {
@@ -75,20 +78,30 @@ public class TestView extends View {
         return rect;
     }
 
-    private void performScale(float scaleFactor) {
+    private void performScale(RectF toApply, float scaleFactor) {
         Matrix mT = new Matrix();
-        mT.setTranslate(-rect.centerX(), -rect.centerY());
+        mT.setTranslate(-toApply.centerX(), -toApply.centerY());
         mT.postScale(scaleFactor, scaleFactor);
-        mT.postTranslate(rect.centerX(), rect.centerY());
-        mT.mapRect(rect);
+        mT.postTranslate(toApply.centerX(), toApply.centerY());
+        mT.mapRect(toApply);
     }
 
-    public void transformRect(Transformation t) {
-        //Log.d(TAG, "Rotating rectangle: " + rotationDeg);
-        currentRotation += t.rotationDegrees;
-        performScale(t.scale);
-        rect.offset(t.tX, t.tY);
+    public void setPendingRectTransform(Transformation t) {
+        pendingTransformation = t;
         invalidate();
+    }
+    public void commitPendingTransform() {
+        rect = applyPendingTransform(rect);
+        currentRotation += pendingTransformation.rotationDegrees;
+        pendingTransformation = new Transformation();
+        invalidate();
+    }
+
+    private RectF applyPendingTransform(RectF toApply) {
+        RectF newRect = new RectF(toApply);
+        performScale(newRect, pendingTransformation.scale);
+        newRect.offset(pendingTransformation.tX, pendingTransformation.tY);
+        return newRect;
     }
 
     @Override
@@ -97,10 +110,10 @@ public class TestView extends View {
         if (pivotPoint != null) {
             canvas.drawCircle(pivotPoint.x, pivotPoint.y, 15.0f, pivotPaint);
         }
-
+        RectF toDraw = applyPendingTransform(rect);
         canvas.save();
-        canvas.rotate(currentRotation, rect.centerX(), rect.centerY());
-        canvas.drawRect(rect, rectPaint);
+        canvas.rotate(currentRotation + pendingTransformation.rotationDegrees, toDraw.centerX(), toDraw.centerY());
+        canvas.drawRect(toDraw, rectPaint);
         canvas.restore();
         if (p1 != null) {
             canvas.drawCircle(p1.x, p1.y, 10.0f, pointerPaint);

@@ -9,3 +9,5 @@
 .cxx
 gradlew
 gradlew.bat
+jester/.idea
+jester/local.properties

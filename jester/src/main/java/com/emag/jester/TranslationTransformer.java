@@ -1,5 +1,8 @@
 package com.emag.jester;
 
+import android.graphics.PointF;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Size;
 
 import java.util.List;
@@ -10,34 +13,31 @@ public class TranslationTransformer {
     private static final int X = 0;
     private static final int Y = 1;
 
-    private static float getDistance(@Size(2) float[] xy) {
-        return (float) Math.hypot(xy[X], xy[Y]);
-    }
+    private final PointF initialAnchorPoint;
 
-    private static @Size(2) float[] getCentroidTranslation(List<Pointer> pointers) {
-        float[] oldCentroid = {0,0};
-        float[] newCentroid = {0,0};
+    private PointF getCentroidTranslation(List<Pointer> pointers) {
+        PointF pointMovedTo = new PointF(0,0 );
 
         for(Pointer p : pointers) {
-            oldCentroid[X] += p.previousPoint.x;
-            oldCentroid[Y] += p.previousPoint.y;
-            newCentroid[X] += p.currentPoint.x;
-            newCentroid[Y] += p.currentPoint.y;
+            pointMovedTo.x += p.currentPoint.x;
+            pointMovedTo.y += p.currentPoint.y;
         }
 
-        oldCentroid[X] /= pointers.size();
-        oldCentroid[Y] /= pointers.size();
-        newCentroid[X] /= pointers.size();
-        newCentroid[Y] /= pointers.size();
+        pointMovedTo.x /= pointers.size();
+        pointMovedTo.y /= pointers.size();
 
-        return new float[]{newCentroid[X] - oldCentroid[X], newCentroid[Y] - oldCentroid[Y]};
+        pointMovedTo.offset(-initialAnchorPoint.x, -initialAnchorPoint.y);
+        return pointMovedTo;
     }
 
-    public static void transform(List<Pointer> pointers, Transformation outTransformation) {
-        final float[] centroidT = getCentroidTranslation(pointers);
+    public void transform(List<Pointer> pointers, Transformation outTransformation) {
+        final PointF movedto = getCentroidTranslation(pointers);
 
-        if (getDistance(centroidT) < 1000) {
-            outTransformation.addTranslation(centroidT);
-        }
+        outTransformation.tX = movedto.x;
+        outTransformation.tY = movedto.y;
+    }
+
+    public TranslationTransformer(@NonNull PointF initialAnchorPoint) {
+        this.initialAnchorPoint = initialAnchorPoint;
     }
 }

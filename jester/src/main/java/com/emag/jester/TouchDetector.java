@@ -1,20 +1,24 @@
 package com.emag.jester;
 
+import android.util.SizeF;
 import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
+import java.util.List;
 
-public class TouchDetector implements View.OnTouchListener {
+public class TouchDetector {
 
     private static final String TAG = TouchDetector.class.getSimpleName();
     private ArrayList<Pointer> activePointers = new ArrayList<>();
     private ArrayList<TouchDetectorListener> listeners = new ArrayList<>();
 
-    @Override
-    public boolean onTouch(View v, @NonNull MotionEvent ev) {
+    public TouchDetector() {
+    }
+
+    public void updateWithTouch(@NonNull MotionEvent ev) {
         int action = ev.getActionMasked();
 
         switch(action) {
@@ -31,20 +35,10 @@ public class TouchDetector implements View.OnTouchListener {
             default :
                 break;
         }
-
-        listeners
-        .forEach(l-> l.handleTouch(activePointers));
-        return true;
     }
 
-    public void addListener(@NonNull TouchDetectorListener newListener) {
-        if (listeners.stream().noneMatch(l -> l == newListener)) {
-            listeners.add(newListener);
-        }
-    }
-
-    public void removeListener(@NonNull TouchDetectorListener toRemove) {
-        listeners.removeIf(l -> l == toRemove);
+    public List<Pointer> getActivePointers() {
+        return activePointers;
     }
 
     private void updateActivePointer(MotionEvent ev) {

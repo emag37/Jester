@@ -5,20 +5,33 @@ import java.util.List;
 public class ScaleTransformer {
     private static String TAG = ScaleTransformer.class.getSimpleName();
 
-    public static double getScale(List<Pointer> pointers) {
-        final double currPointerDist = Math.hypot(pointers.get(0).currentPoint.x - pointers.get(1).currentPoint.x, pointers.get(0).currentPoint.y - pointers.get(1).currentPoint.y);
-        final double prevPointerDist = Math.hypot(pointers.get(0).previousPoint.x - pointers.get(1).previousPoint.x, pointers.get(0).previousPoint.y - pointers.get(1).previousPoint.y);
+    private final float MAX_INCREMENTAL_SCALE = 2.0f;
+    private final double initPointerDist;
 
-        return currPointerDist / prevPointerDist;
+    private static double getPointerDist(List<Pointer> pointers) {
+        return Math.hypot(pointers.get(0).currentPoint.x - pointers.get(1).currentPoint.x, pointers.get(0).currentPoint.y - pointers.get(1).currentPoint.y);
     }
 
-    public static void transform(List<Pointer> pointers, Transformation outTransformation) {
-        outTransformation.scale = 1.f;
+    public double getScale(List<Pointer> pointers) {
+        return getPointerDist(pointers) / initPointerDist;
+    }
+
+    public void transform(List<Pointer> pointers, Transformation outTransformation) {
         if (pointers.size() != 2) {
-            return;
+            throw new RuntimeException("Cannot get scale transform with nPointers != 2");
         }
 
         double scale = getScale(pointers);
-        outTransformation.scale = (float) scale;
+        if (Math.abs(scale - outTransformation.scale) < MAX_INCREMENTAL_SCALE) {
+            outTransformation.scale = (float) scale;
+        }
+    }
+
+    public ScaleTransformer(List<Pointer> initPointers) {
+        if (initPointers.size() != 2) {
+            throw new RuntimeException("Cannot init ScaleTransformer with nPointers != 2");
+        }
+
+        initPointerDist = getPointerDist(initPointers);
     }
 }
